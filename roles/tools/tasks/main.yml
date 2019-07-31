@@ -1,0 +1,19 @@
+- name: Set timezone to Asia/Tokyo
+  timezone:
+    name: Asia/Tokyo
+- name: change hostname
+  shell: hostnamectl set-hostname {{asg_name}}
+- name: nginx log rotate file
+  template:
+    src: files/logrotate_nginx
+    dest: /etc/logrotate.d/nginx
+    owner: root
+    group: root
+    mode: 0644
+- name: check logrotate shell's path
+  stat:
+    path: /etc/cron.daily/logrotate
+  register: cron_logrotate
+- name: change logrotate time daily into hourly
+  shell: mv /etc/cron.daily/logrotate /etc/cron.hourly/.
+  when: cron_logrotate.stat.exists
