@@ -1,0 +1,17 @@
+- name: set sidekiq systemd service file
+  template:
+    src: templates/systemd/sidekiq.j2
+    dest: /etc/systemd/system/sidekiq.service
+- name: enabled systemd sidekiq.service
+  systemd:
+    name: sidekiq.service
+    enabled: yes
+
+- name: set unicorn systemd service file
+  template:
+    src: templates/systemd/unicorn.j2
+    dest: /etc/systemd/system/unicorn.service
+- name: enabled systemd unicorn.service
+  systemd:
+    name: unicorn.service
+    enabled: yes

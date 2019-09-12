@@ -1,0 +1,18 @@
+[Unit]
+Description=unicorn
+After=syslog.target network.target
+
+[Service]
+Type=forking
+ExecStart=/bin/bash -lc 'ruby {{ ansistrano_deploy_to }}/shared/scripts/unicorn start'
+ExecStop=/bin/bash -lc 'ruby {{ ansistrano_deploy_to }}/shared/scripts/unicorn stop'
+ExecReload=/bin/bash -lc 'ruby {{ ansistrano_deploy_to }}/shared/scripts/unicorn restart'
+User=deploy
+Group=deploy
+UMask=0002
+RestartSec=1
+Restart=on-failure
+PIDFile={{ ansistrano_deploy_to }}/shared/pids/unicorn.pid
+
+[Install]
+WantedBy=multi-user.target

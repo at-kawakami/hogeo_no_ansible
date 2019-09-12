@@ -1,0 +1,17 @@
+[Unit]
+Description=sidekiq
+After=syslog.target network.target
+
+[Service]
+Type=Simple
+WorkingDirectory={{ ansistrano_deploy_to }}
+ExecStart=/bin/bash -lc '/usr/local/rbenv/shims/bundle exec sidekiq'
+User=deploy
+Group=deploy
+UMask=0002
+RestartSec=1
+Restart=on-failure
+Environment=MALLOC_ARENA_MAX=2
+
+[Install]
+WantedBy=multi-user.target
