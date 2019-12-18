@@ -1,0 +1,18 @@
+- hosts: web
+  vars_files:
+    - group_vars/{{target_env}}/td-agent-s3.yml
+    - group_vars/{{target_env}}/general.yml
+    - group_vars/{{target_env}}/env_vars.yml
+    - group_vars/{{target_env}}/env_vars_secret.yml
+    - group_vars/{{target_env}}/nginx_vars.yml
+    - group_vars/web.yml
+  become: yes
+  become_user: root
+  roles:
+    - service
+    - tools
+    - nginx
+     #- td-agent
+     #- role: ansistrano.deploy
+     #  become: yes
+     #  become_user: deploy
