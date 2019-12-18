@@ -1,0 +1,9 @@
+- hosts: all
+  vars_files:
+    - group_vars/production/td-agent-s3.yml
+    - group_vars/production/general.yml
+  become: yes
+  become_user: root
+  roles:
+    - terminate
+    - service
