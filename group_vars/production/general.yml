@@ -1,0 +1,21 @@
+appname: "production_hogeo_frima_service"
+service_name: "production_hogeo_frima_service"
+environment_name: production
+sidekiq_user: deploy
+node_version: 8.16.0
+nodenv_root: /usr/local/nodenv
+rails_log_dir: /srv/www/production_hogeo_service/shared/log
+rails_env: production
+td_agent_log_prefix: td-vagrant
+
+# unicorn
+unicorn_worker_processes: 4
+unicorn_backlog: 1024
+unicorn_preload_app: "true"
+unicorn_version: '4.7.0'
+unicorn_tcp_nodelay: "true"
+unicorn_tcp_nopush: "false"
+unicorn_tries: 5
+unicorn_delay: 0.5
+unicorn_accept_filter: "httpready"
+unicorn_rack_version: "1.6.4"
