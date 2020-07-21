@@ -1,0 +1,20 @@
+- name: shutdown datadog
+  systemd:
+    name: datadog-agent
+    state: stopped
+- name: shutdown nginx
+  service:
+    name: nginx
+    state: stopped
+- name: shutdown sidekiq
+  systemd:
+    name: sidekiq.service
+    state: stopped
+  become: yes
+  become_user: root
+- name: shutdown unicorn
+  systemd:
+    name: unicorn.service
+    state: stopped
+  become: yes
+  become_user: root
