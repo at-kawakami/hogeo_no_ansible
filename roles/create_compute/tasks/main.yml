@@ -1,0 +1,61 @@
+- debug: var=ansible_date_time
+- name: create a instance
+  google.cloud.gcp_compute_instance:
+    name: '{{ instance_name }}'
+    machine_type: "{{ machine_type }}"
+    disks:
+    - auto_delete: 'true'
+      boot: yes
+      interface: SCSI
+      type: PERSISTENT
+      initialize_params:
+        source_image: https://www.googleapis.com/compute/v1/projects/centos-cloud/global/images/centos-7-v20211214
+        disk_type: pd-standard
+        disk_size_gb: "{{ disk_size }}"
+    labels:
+      environment: "{{ stage_env }}"
+    network_interfaces:
+    #- network: "{{ network }}"
+    - network:
+        name: default
+      access_configs:
+      - name: External NAT
+    #    nat_ip: "{{ address }}"
+        type: ONE_TO_ONE_NAT
+    zone: "{{ zone }}"
+    project: "{{ gcp_project }}"
+    # auth_kind&*accountは、create_computeする際に使用するサービスアカウント
+    # VMに付与するservice_accountは別途指定が必要になる
+    # auth_kind: serviceaccount> service_account_file
+    # auth_kind: machineaccount> service_account_email
+    auth_kind: serviceaccount
+    #service_account_file: /workspace/keyfiles/compute-autoscaling.json
+    # 環境変数GCP_SERVICE_ACCOUNT_FILEから取れるらしい
+    service_account_file: "{{ service_account_file }}"
+    #auth_kind: machineaccount
+    #service_account_email: compute-autoscaling@project_name.iam.gserviceaccount.com
+    # VMにアタッチするサービスアカウント
+    service_accounts:
+    #- email: compute-autoscaling@project_name.iam.gserviceaccount.com
+    # 環境変数GCP_SERVICE_ACCOUNT_EMAILから取れるらしい
+    - email: "{{ service_account_email }}"
+      scopes:
+        - https://www.googleapis.com/auth/cloud-platform
+    tags:
+      items:
+        - default-allow-ssh
+    state: present
+    status: RUNNING
+  register: network_interfaces
+- debug: var=network_interfaces
+- name: set IP inventory file
+  shell: sed -i 's/ansible_host.*/ansible_host:\ "{{ network_interfaces.networkInterfaces[0].accessConfigs[0].natIP }}"/g' inventories/"{{ stage_env }}"/{{ app_name }}.yml
+- name: cat IP inventory file
+  shell: cat inventories/{{ stage_env }}/{{ app_name }}.yml
+
+- name: check ssh connect
+  wait_for:
+    host: "{{ network_interfaces.networkInterfaces[0].accessConfigs[0].natIP }}"
+    port: 22
+    delay: 10
+    timeout: 300

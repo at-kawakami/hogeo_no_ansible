@@ -1,0 +1,9 @@
+all:
+  hosts:
+    local:
+      ansible_connection: local
+      ansible_host: localhost
+      ansible_python_interpreter: '{{ ansible_playbook_python }}'
+      plugin: gcp_compute
+      gcp_project: '{{ gcp_project }'}
+      network: default

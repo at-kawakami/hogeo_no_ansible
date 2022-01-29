@@ -1,0 +1,16 @@
+all:
+  hosts:
+    test_kawakami_com:
+      #ansible_python_interpreter: /usr/bin/python3
+      plugin: gcp_compute
+      ansible_host: dummy
+      gcp_project: '{{ gcp_project }}'
+      fqdn: test-kawakami.com
+      MASTERDB: master_db_endpoint
+      GCP_KEY_PATH: /path/to/gcp_key_path
+      git_repo: git@github.com:at-kawakami/TBA
+      branch: develop
+      labels:
+        environment: staging
+      network: default
+      defalut_backend_service: https://www.googleapis.com/compute/v1/projects/'{{ gcp_project }}'/global/backendBuckets/TBA

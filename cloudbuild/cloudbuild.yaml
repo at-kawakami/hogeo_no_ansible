@@ -1,0 +1,75 @@
+steps:
+- id: "Install locale for date"
+  name: ubuntu
+  entrypoint: bash
+  args:
+    - -c
+    - "apt-get update && apt-get install -y --no-install-recommends tzdata && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && date +%Y%m%d%H%M%S > /workspace/date.txt"
+- id: "Read Dates"
+  name: ubuntu
+  entrypoint: bash
+  args:
+    - -c
+    - cat /workspace/date.txt
+# Ansible ssh用鍵準備
+- id: "cloud buildからansible sshするための鍵準備"
+  name: gcr.io/cloud-builders/gcloud
+  dir: keyfiles
+  args:
+  - kms
+  - decrypt
+  - --ciphertext-file=id_rsa.enc
+  - --plaintext-file=id_rsa
+  - --location=asia-northeast1
+  - --keyring=hogeo-keyring
+  - --key=hogeo-key
+- id: "cloud buildからcreate_computeする用鍵準備"
+  name: gcr.io/cloud-builders/gcloud
+  dir: keyfiles
+  args:
+  - kms
+  - decrypt
+  - --ciphertext-file=compute-autoscaling.json.enc
+  - --plaintext-file=compute-autoscaling.json
+  - --location=asia-northeast1
+  - --keyring=hogeo-keyring
+  - --key=hogeo-key
+- id: "鍵chmod"
+  name: 'gcr.io/$PROJECT_ID/ansible'
+  dir: keyfiles
+  entrypoint: 'sh'
+  args:
+  - -c
+  - "chmod 600 id_rsa"
+# create compute
+- id: "VM作成: Ansible: create_compute_engine.yml"
+  name: 'gcr.io/$PROJECT_ID/ansible'
+  dir: ansible/my_app/playbooks
+  entrypoint: 'sh'
+  args:
+  - -c
+  - "apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python && python3 -m ensurepip && pip3 install --no-cache --upgrade pip setuptools && pip install requests google-auth && ansible-playbook -v create_compute_engine.yml -e stage_env=$_STAGE_ENV -e instance_name=${_INSTANCE_NAME}-$(cat /workspace/date.txt) -e machine_type=$_MACHINE_TYPE -e app_name=$_APP_NAME -e zone=$_ZONE -e disk_size=$_DISK_SIZE -i inventories/local"
+## deploy app
+#- id: "deploy: Ansible: setup_compute_engine.yml"
+#  name: 'gcr.io/$PROJECT_ID/ansible'
+#  dir: ansible/my_app/playbooks
+#  entrypoint: 'sh'
+#  args:
+#  - -c
+#  - "ansible-playbook -v setup_compute_engine.yml -e stage_env=$_STAGE_ENV -e app_name=$_APP_NAME -e zone=$_ZONE -e disk_size=$_DISK_SIZE -i inventories/$_STAGE_ENV/${_APP_NAME}.yml --private-key /workspace/keyfiles/id_rsa"
+# create instance group
+# create snapshot
+# create disk
+# create instance template
+# create instance group
+#- id: "Switch LB: Ansible: switch_lb.yml"
+#  name: 'gcr.io/$PROJECT_ID/ansible'
+#  dir: ansible/my_app/playbooks
+#  entrypoint: 'sh'
+#  args:
+#  - -c
+#  # ansibleコンテナにはgcloudコマンドがないので、Ansible内のGCPモジュールでインフラをセットアップする
+#  - "apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python && python3 -m ensurepip && pip3 install --no-cache --upgrade pip setuptools && pip install requests google-auth && ansible-playbook -v switch_lb.yml -e stage_env=$_STAGE_ENV -e app_name=$_APP_NAME -e zone=$_ZONE -e disk_size=$_DISK_SIZE -e instance_name=${_INSTANCE_NAME}-$(cat /workspace/date.txt) -e machine_type=$_MACHINE_TYPE -i inventories/local"
+#substitutions:
+#    _BUCKET: cdn-test-kawakami
+timeout: 1800s

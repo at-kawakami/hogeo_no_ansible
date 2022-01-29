@@ -1,0 +1,21 @@
+- name: reload apache
+  service:
+    name: httpd
+    state: reloaded
+
+- name: restart apache
+  service:
+    name: httpd
+    state: restarted
+
+- name: start cloud sql proxy for master db
+  systemd:
+    daemon_reload: yes
+    state: started
+    name: cloud_sql_proxy
+
+- name: start cloud sql proxy for read replica
+  systemd:
+    daemon_reload: yes
+    state: started
+    name: cloud_sql_proxy-read
